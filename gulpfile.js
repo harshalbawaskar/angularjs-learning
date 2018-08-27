@@ -1,21 +1,14 @@
 // get access to the gulp API
 const gulp = require('gulp');
 const concat = require('gulp-concat');
-var addStream = require('add-stream');
 const browserSync = require('browser-sync').create();
-const babel = require('gulp-babel');
-const print = require('gulp-print');
 var uglify = require('gulp-uglify');
-var htmlmin = require('gulp-htmlmin');
 var ngAnnotate = require('browserify-ngannotate');
-var templateCache = require('gulp-angular-templatecache');
 var embedTemplates = require('gulp-angular-embed-templates');
 var path = require('path');
-var wrap = require('gulp-wrap');
 
 const babelify = require('babelify');
 const browserify = require("browserify");
-const connect = require("gulp-connect");
 const source = require("vinyl-source-stream");
 
 const scripts = require('./scripts');
