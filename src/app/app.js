@@ -1,25 +1,17 @@
 import angular from 'angular';
 import "@uirouter/angularjs";
 
-angular.module('todoApp', ['ui.router']);
+import { TodoComponent } from './components/todo-component';
 
-angular.module('todoApp')
-    .controller('myController', ($scope) => {
-        $scope.name = 'Harshal';
-    });
-
-/*     .config(($stateProvider, $urlServiceProvider) => {
-        'ngInject';
-
+angular.module('todoApp', ['ui.router'])
+    .component('todoComponent', TodoComponent)
+    .config(['$locationProvider', '$stateProvider', '$urlServiceProvider', ($locationProvider, $stateProvider, $urlServiceProvider) => {
+        $locationProvider.hashPrefix('');
         $urlServiceProvider.rules.otherwise({ state: 'main' });
 
         $stateProvider
             .state('main', {
                 url: '/',
-                component: TodoComponent
+                component: 'todoComponent'
             });
-    });
- */
-// angular.bootstrap(document, ['todoApp'], {
-//     strictDi: true
-// });
+    }]);

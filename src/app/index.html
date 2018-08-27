@@ -6,13 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
+    <base href="/">
     <link rel="stylesheet" href="css/main.css">
     <script src="scripts/app.js"></script>
 </head>
 
-<body ng-controller="myController">
-    {{name}}
-    <!-- <ui-view></ui-view> -->
+<body>
+    <!-- Welcome {{name}}!
+    <div>
+        <label> Enter string </label>
+        <input type="text" ng-init="strModel = ''" ng-model="strModel">
+    </div>
+    <div>
+        <strong>Reversed String: {{reverseString(strModel)}}</strong>
+    </div> -->
+    <ui-view></ui-view>
 </body>
 
 </html>

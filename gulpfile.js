@@ -1,11 +1,17 @@
 // get access to the gulp API
 const gulp = require('gulp');
 const concat = require('gulp-concat');
+var addStream = require('add-stream');
 const browserSync = require('browser-sync').create();
 const babel = require('gulp-babel');
 const print = require('gulp-print');
 var uglify = require('gulp-uglify');
+var htmlmin = require('gulp-htmlmin');
 var ngAnnotate = require('browserify-ngannotate');
+var templateCache = require('gulp-angular-templatecache');
+var embedTemplates = require('gulp-angular-embed-templates');
+var path = require('path');
+var wrap = require('gulp-wrap');
 
 const babelify = require('babelify');
 const browserify = require("browserify");
@@ -15,47 +21,43 @@ const source = require("vinyl-source-stream");
 const scripts = require('./scripts');
 const styles = require('./styles');
 
-gulp.task('css', function () {
-    gulp.src(styles)
+function css() {
+    return gulp.src(styles)
         .pipe(concat('main.css'))
         .pipe(gulp.dest('./dist/css'))
         .pipe(browserSync.reload({
             stream: true
         }));
-});
+}
 
-gulp.task('html', function () {
-    return gulp.src('./src/app/**/*.html')
-        .pipe(gulp.dest('./dist'))
-        .pipe(browserSync.reload({
-            stream: true
-        }));
-});
+function copy() {
+    return gulp.src('./src/app/index.html')
+        .pipe(gulp.dest('./dist'));
+}
 
-gulp.task('libs', function () {
-    return gulp.src([
-        'node_modules/systemjs/dist/system.js',
-        'node_modules/babel-polyfill/dist/polyfill.js'])
-        // .pipe(print())
-        .pipe(gulp.dest('./dist/libs'));
-});
-
-// gulp.task('js', function () {
-//     gulp.src(scripts)
-//         //.pipe(print())  
-//         .pipe(babel({ presets: ['es2015'] }))
-//         .pipe(concat('app.js'))
-//         .pipe(gulp.dest('./dist/scripts'))
+// function template() {
+//     return gulp.src(['./src/app/components/*.html',
+//         '!./src/app/index.html'])
+//         .pipe(templateCache('templateCache.js', { module: 'todoCache', standalone: true }))
+//         .pipe(gulp.dest('./dist/components'))
 //         .pipe(browserSync.reload({
 //             stream: true
 //         }));
-// });
+// }
 
+function templates() {
+    return gulp.src('./src/app/**/*.js')
+        .pipe(embedTemplates())
+        .pipe(gulp.dest('./dist/components'))
+        .pipe(browserSync.reload({
+            stream: true
+        }));
+}
 
-//Convert ES6 ode in all js files in src/js folder and copy to 
-//build folder as bundle.js
-gulp.task("js", function () {
-    return browserify("./src/app/app.js")
+// Convert ES6 ode in all js files in src/js folder and copy to 
+// build folder as bundle.js
+function js() {
+    return browserify(['./dist/components/app.js'])
         .transform(babelify, {
             presets: ["es2015"]
         })
@@ -66,37 +68,16 @@ gulp.task("js", function () {
         .pipe(browserSync.reload({
             stream: true
         }));
-});
+}
 
+function watchFiles() {
+    gulp.watch(['./src/app/index.html'], gulp.series('copy'));
+    gulp.watch(['./src/app/**/*.css'], gulp.series('css'));
+    gulp.watch(['./src/app/components/**/*.html'], gulp.series('templates'));
+    gulp.watch(['./src/app/**/*.js'], gulp.series('js'));
+}
 
-gulp.task("minify", ['js'], function () {
-    return gulp.src("./dist/scripts/app.js")
-        .pipe(uglify())
-        .pipe(gulp.dest('./dist/scripts'))
-        .pipe(browserSync.reload({
-            stream: true
-        }));
-});
-
-gulp.task('browser-sync', function () {
-    browserSync.init(null, {
-        open: false,
-        server: {
-            baseDir: './dist',
-        }
-    });
-});
-
-gulp.task('build', function () {
-    gulp.start(['css', 'html', 'js'])
-});
-
-gulp.task('start', function () {
-    gulp.start(['build']);
-});
-
-gulp.task('default', ['start'], function () {
-
+function browserSyncFun(done) {
     browserSync.init(['./dist/**/**.**'], {
         server: "./dist",
         port: 4000,
@@ -105,8 +86,17 @@ gulp.task('default', ['start'], function () {
             port: 4001
         }
     });
+    done();
+}
 
-    gulp.watch(['./src/app/**/*.css'], ['css']);
-    gulp.watch(['./src/app/**/*.js'], ['js']);
-    gulp.watch(['./src/app/**/*.html'], ['html']);
-});
+
+gulp.task('copy', copy);
+gulp.task('css', css);
+gulp.task('templates', templates);
+gulp.task('js', js);
+gulp.task('watch', watchFiles);
+gulp.task('browser-sync', browserSyncFun);
+
+gulp.task('build', gulp.series('templates', gulp.parallel('copy', 'css', 'js')));
+
+gulp.task('default', gulp.series('build', gulp.parallel('browser-sync', 'watch')));
